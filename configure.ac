@@ -14,9 +14,9 @@ AC_PREREQ([2.63])
 #   gdk_pixbuf_binary_age = 0;
 
 m4_define([gdk_pixbuf_major_version], [2])
-m4_define([gdk_pixbuf_minor_version], [24])
-m4_define([gdk_pixbuf_micro_version], [1])
-m4_define([gdk_pixbuf_interface_age], [1])
+m4_define([gdk_pixbuf_minor_version], [26])
+m4_define([gdk_pixbuf_micro_version], [2])
+m4_define([gdk_pixbuf_interface_age], [2])
 m4_define([gdk_pixbuf_binary_age],
           [m4_eval(100 * gdk_pixbuf_minor_version + gdk_pixbuf_micro_version)])
 m4_define([gdk_pixbuf_version],
@@ -26,7 +26,7 @@ m4_define([gdk_pixbuf_binary_version], [2.10.0])
 
 
 # required versions of other packages
-m4_define([glib_required_version], [2.27.2])
+m4_define([glib_required_version], [2.31.0])
 
 AC_INIT([gdk-pixbuf], [gdk_pixbuf_version],
         [http://bugzilla.gnome.org/enter_bug.cgi?product=gdk-pixbuf],
@@ -39,13 +39,13 @@ AC_CONFIG_MACRO_DIR([m4])
 # Save this value here, since automake will set cflags later
 cflags_set=${CFLAGS+set}
 
-AM_INIT_AUTOMAKE([1.10 foreign no-define -Wno-portability dist-bzip2 no-dist-gzip tar-ustar])
+AM_INIT_AUTOMAKE([1.11 foreign no-define -Wno-portability dist-xz no-dist-gzip tar-ustar])
 AM_MAINTAINER_MODE([enable])
 
-# Support silent build rules, requires at least automake-1.11. Enable
-# by either passing --enable-silent-rules to configure or passing V=0
+# Support silent build rules. Disable
+# by either passing --disable-silent-rules to configure or passing V=0
 # to make
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([no])])
+AM_SILENT_RULES([yes])
 
 #
 # For each of the libraries we build, we define the following
@@ -410,16 +410,6 @@ AM_PATH_GLIB_2_0(glib_required_version, :,
 *** GLIB glib_required_version or better is required. The latest version of
 *** GLIB is always available from ftp://ftp.gtk.org/pub/gtk/.]),
   gobject gmodule-no-export gthread)
-
-# See if it's safe to turn G_DISABLE_DEPRECATED on.
-GLIB_VERSION_MAJOR_MINOR=`$PKG_CONFIG --modversion glib-2.0 | sed "s/\.@<:@^.@:>@*\$//"`
-GLIB_REQUIRED_VERSION_MAJOR_MINOR=`echo glib_required_version | sed "s/\.@<:@^.@:>@*\$//"`
-if test "x$GLIB_VERSION_MAJOR_MINOR" = "x$GLIB_REQUIRED_VERSION_MAJOR_MINOR"; then
-  CFLAGS="-DG_DISABLE_DEPRECATED $CFLAGS"
-fi
-
-CFLAGS="-DGDK_PIXBUF_DISABLE_DEPRECATED $CFLAGS"
-
 
 dnl
 dnl Check for bind_textdomain_codeset, including -lintl if GLib brings it in.
