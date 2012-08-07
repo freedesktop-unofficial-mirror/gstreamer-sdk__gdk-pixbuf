@@ -165,7 +165,7 @@ static gboolean   gdk_pixbuf_gdip_anim_iter_advance                    (GdkPixbu
 G_DEFINE_TYPE (GdkPixbufGdipAnimIter, gdk_pixbuf_gdip_anim_iter, GDK_TYPE_PIXBUF_ANIMATION_ITER);
 
 static void
-gdk_pixbuf_gdip_anim_iter_init (GdkPixbufGdipAnimIter *anim)
+gdk_pixbuf_gdip_anim_iter_init (GdkPixbufGdipAnimIter *iter)
 {
 }
 
