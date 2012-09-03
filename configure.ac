@@ -746,6 +746,10 @@ AM_CONDITIONAL(INCLUDE_QTIF, [test x"$INCLUDE_qtif" = xyes])
 # check one of the variables here
 AM_CONDITIONAL(INCLUDE_GDIPLUS, [test x"$INCLUDE_gdip_ico" = xyes])
 
+if test x$cross_compiling = xyes; then
+  gio_can_sniff=no
+fi
+
 if test x$gio_can_sniff = x; then
   AC_MSG_CHECKING([if gio can sniff png])
   gtk_save_LIBS="$LIBS"
