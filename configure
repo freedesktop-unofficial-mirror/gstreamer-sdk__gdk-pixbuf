@@ -18417,6 +18417,9 @@ else
   INCLUDE_GDIPLUS_FALSE=
 fi
 
+if test x$cross_compiling = xyes; then
+  gio_can_sniff=no
+fi
 
 if test x$gio_can_sniff = x; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if gio can sniff png" >&5
