@@ -46,6 +46,9 @@
 #include <windows.h>
 #undef STRICT
 #endif
+#ifdef OS_DARWIN
+#include <mach-o/dyld.h>
+#endif
 
 #define SNIFF_BUFFER_SIZE 4096
 #define LOAD_BUFFER_SIZE 65536
@@ -228,6 +231,7 @@ get_file_formats (void)
         return file_formats;
 }
 
+
 #ifdef G_OS_WIN32
 
 /* DllMain function needed to tuck away the gdk-pixbuf DLL handle */
@@ -247,19 +251,40 @@ DllMain (HINSTANCE hinstDLL,
 
   return TRUE;
 }
+#endif
+
 
 char *
-_gdk_pixbuf_win32_get_toplevel (void)
+_gdk_pixbuf_get_toplevel (void)
 {
   static char *toplevel = NULL;
 
-  if (toplevel == NULL)
-          toplevel = g_win32_get_package_installation_directory_of_module (gdk_pixbuf_dll);
+  if (toplevel == NULL) {
+#if defined(G_OS_WIN32)
+    toplevel = g_win32_get_package_installation_directory_of_module (gdk_pixbuf_dll);
+#elif defined(OS_DARWIN)
+    char pathbuf[PATH_MAX + 1];
+    uint32_t  bufsize = sizeof(pathbuf);
+    gchar *bin_dir;
 
+    _NSGetExecutablePath(pathbuf, &bufsize);
+    bin_dir = g_dirname(pathbuf);
+    toplevel = g_build_path (G_DIR_SEPARATOR_S, bin_dir, "..", NULL);
+    g_free (bin_dir);
+#elif defined (G_OS_UNIX)
+    gchar *exe_path, *bin_dir;
+
+    exe_path = g_file_read_link ("/proc/self/exe", NULL);
+    bin_dir = g_dirname(exe_path);
+    toplevel = g_build_path (G_DIR_SEPARATOR_S, bin_dir, "..", NULL);
+    g_free (exe_path);
+    g_free (bin_dir);
+#else
+#error "Relocations not supported for this platform"
+#endif
+  }
   return toplevel;
 }
-#endif
-
 
 #ifdef USE_GMODULE 
 
@@ -341,8 +366,8 @@ skip_space (const char **pos)
         
         return !(*p == '\0');
 }
-  
-#ifdef G_OS_WIN32
+
+#ifdef GDK_PIXBUF_RELOCATABLE
 
 static char *
 get_libdir (void)
@@ -350,7 +375,7 @@ get_libdir (void)
   static char *libdir = NULL;
 
   if (libdir == NULL)
-          libdir = g_build_filename (_gdk_pixbuf_win32_get_toplevel (), "lib", NULL);
+          libdir = g_build_filename (_gdk_pixbuf_get_toplevel (), "lib", NULL);
 
   return libdir;
 }
@@ -379,12 +404,12 @@ correct_prefix (gchar **path)
        * installation prefix on this machine.
        */
       tem = *path;
-      *path = g_strconcat (_gdk_pixbuf_win32_get_toplevel (), tem + strlen (GDK_PIXBUF_PREFIX), NULL);
+      *path = g_strconcat (_gdk_pixbuf_get_toplevel (), tem + strlen (GDK_PIXBUF_PREFIX), NULL);
       g_free (tem);
     }
 }
 
-#endif  /* G_OS_WIN32 */
+#endif  /* GDK_PIXBUF_RELOCATABLE */
 
 static gchar *
 gdk_pixbuf_get_module_file (void)
@@ -531,7 +556,7 @@ gdk_pixbuf_io_init (void)
                                 /* Blank line marking the end of a module
                                  */
                         if (module && *p != '#') {
-#ifdef G_OS_WIN32
+#ifdef GDK_PIXBUF_RELOCATABLE
                                 correct_prefix (&module->module_path);
 #endif
                                 file_formats = g_slist_prepend (file_formats, module);
